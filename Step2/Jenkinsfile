@@ -23,7 +23,7 @@ pipeline {
             steps {
                 echo "inizio Build [creazione immagine]"
                 //SH esegue il comando da terminale. 
-                sh 'docker build -t flask-hello-world .' //crea immagine
+                sh 'docker build -t flask-hello-world Step2/' //crea immagine
             }
         }
         stage('Tag') {

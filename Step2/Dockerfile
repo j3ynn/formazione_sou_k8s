@@ -10,4 +10,4 @@ COPY app.py .
 # installa flask
 RUN pip install flask 
 
-CMD python3 app.py
+CMD ["python3", "app.py"]
