@@ -1,0 +1,42 @@
+pipeline {
+    agent any //esegue la pipeline su qualsiasi agent disponibile, nel mio caso ContainerAgent (step1)
+
+    //contenitore (es. tasks)
+    stages {
+        //prima di questo ho creato le credenziali globali su jenkins,
+        //facendo così non sono visibili le password ma salvate in una variabile globale
+        stage('Login DockerHub') {
+            steps {
+                //recupera le credenziali di accesso su jenkins
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials', //prende le informazioni della credenziale globale su jenkins
+                    usernameVariable: 'DOCKER_USER', //mette l'user nella variabile globale
+                    passwordVariable: 'DOCKER_PASS' //mette la password nella variabile globale
+                )]) {
+                    sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS' //comando per il login dockerhub
+                }
+            }
+        }
+        //nome stage
+        stage('Build') {
+            //step da eseguire
+            steps {
+                echo "inizio Build [creazione immagine]"
+                //SH esegue il comando da terminale. 
+                sh 'docker build -t flask-hello-world .' //crea immagine
+            }
+        }
+        stage('Tag') {
+            steps {
+                echo "inizio tag imag"
+                sh 'docker tag flask-hello-world j3ynn/flask-hello-world:latest' //tagga immagine
+            }
+        }
+        stage('Push') {
+            steps {
+                echo "inizio push"
+                sh 'docker push j3ynn/flask-hello-world:latest' //pusha su dockerhub l'immagine
+            }
+        }
+    }
+}
