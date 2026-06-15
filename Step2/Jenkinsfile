@@ -3,6 +3,15 @@ pipeline {
 
     //contenitore (es. tasks)
     stages {
+
+        stage('Debug Git Vars') {
+            steps {
+                sh 'env | grep -i git'
+                sh 'env | grep -i branch'
+                sh 'env | grep -i tag'
+            }
+        }
+
         //prima di questo ho creato le credenziali globali su jenkins,
         //facendo così non sono visibili le password ma salvate in una variabile globale
         stage('Login DockerHub') {
@@ -13,10 +22,11 @@ pipeline {
                     usernameVariable: 'DOCKER_USER', //mette l'user nella variabile globale
                     passwordVariable: 'DOCKER_PASS' //mette la password nella variabile globale
                 )]) {
-                    sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS' //comando per il login dockerhub
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin' //comando per il login dockerhub
                 }
             }
         }
+
         //nome stage
         stage('Build') {
             //step da eseguire
@@ -26,17 +36,26 @@ pipeline {
                 sh 'docker build -t flask-hello-world Step2/' //crea immagine
             }
         }
+
         stage('Tag') {
             steps {
                 echo "inizio tag imag"
                 sh 'docker tag flask-hello-world j3ynn/flask-hello-world:latest' //tagga immagine
             }
         }
+
         stage('Push') {
             steps {
                 echo "inizio push"
                 sh 'docker push j3ynn/flask-hello-world:latest' //pusha su dockerhub l'immagine
             }
+        }
+    }
+    
+    //qualunque cosa succeda, alla fine della sessione Docker viene chiuso
+    post {
+        always {
+            sh 'docker logout'
         }
     }
 }
