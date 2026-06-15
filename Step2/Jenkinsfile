@@ -1,9 +1,13 @@
+//variabile
+def IMAGE_TAG = ""
+
 pipeline {
     agent any //esegue la pipeline su qualsiasi agent disponibile, nel mio caso ContainerAgent (step1)
 
     //contenitore (es. tasks)
     stages {
 
+        //debug per capire quali variabili sono disponibili
         stage('Debug Git Vars') {
             steps {
                 sh 'env | grep -i git'
@@ -11,6 +15,23 @@ pipeline {
                 sh 'env | grep -i tag'
             }
         }
+
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    if (env.GIT_BRANCH == "origin/master") {
+                        IMAGE_TAG = "latest"
+                    }
+                    else if (env.GIT_BRANCH == "origin/develop") {
+                        IMAGE_TAG = "develop-" + env.GIT_COMMIT.take(7) //prende solo i primi 7 caratteri della stringa SHA
+                    }
+                    else {
+                        IMAGE_TAG = env.TAG_NAME
+                    }
+                }
+            }
+        }
+        // SHA = famiglia di algoritmi crittografici utilizzati per trasformare una quantità di dati in una stringa di caratteri dall'aspetto casuale.
 
         //prima di questo ho creato le credenziali globali su jenkins,
         //facendo così non sono visibili le password ma salvate in una variabile globale
@@ -36,18 +57,18 @@ pipeline {
                 sh 'docker build -t flask-hello-world Step2/' //crea immagine
             }
         }
-
+    
         stage('Tag') {
             steps {
                 echo "inizio tag imag"
-                sh 'docker tag flask-hello-world j3ynn/flask-hello-world:latest' //tagga immagine
+                sh "docker tag flask-hello-world j3ynn/flask-hello-world:${IMAGE_TAG}" //tagga immagine
             }
         }
 
         stage('Push') {
             steps {
                 echo "inizio push"
-                sh 'docker push j3ynn/flask-hello-world:latest' //pusha su dockerhub l'immagine
+                sh "docker push j3ynn/flask-hello-world:${IMAGE_TAG}" //pusha su dockerhub l'immagine
             }
         }
     }
