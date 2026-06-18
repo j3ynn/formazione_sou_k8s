@@ -48,26 +48,6 @@ pipeline {
             }
         }
 
-        stage ('Date') {
-            
-            steps {
-
-                script {
-
-                    def GiornoSettimana = new Date().format('E')
-
-                    echo "Valore: ${GiornoSettimana}"
-
-                    if (GiornoSettimana == 'Thu' || GiornoSettimana == 'Sun') {
-                        error "weekend niente build"
-                    }
-                    else {
-                        sh 'echo "giorno lavorativo build eseguibile"'
-                    }
-                }
-            }
-        }
-        
         //nome stage
         stage('Build') {
             //step da eseguire
