@@ -58,7 +58,7 @@ pipeline {
 
                     echo "Valore: ${GiornoSettimana}"
 
-                    if (GiornoSettimana == 'thu' || GiornoSettimana == 'dom') {
+                    if (GiornoSettimana == 'Thu' || GiornoSettimana == 'Sun') {
                         error "weekend niente build"
                     }
                     else {
